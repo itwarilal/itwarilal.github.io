@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="sonos">
+    <module2copyright>
+      <element module="All" copyright="sonos" />
+    </module2copyright>
+  </settings>
+</component>
