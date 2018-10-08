@@ -63,7 +63,7 @@ approach but lacks versioning, metadata information and tracking as you would ex
 There are couple of good frameworks that make it easy to support schema migration for Cassandra and provide very similar
 behavior/functionality as their RDBMS counterpart. We are going to go into more detail into one of such solution
 that I have been using for sometime - 
-(smartcat labs cassandra migration tool)[https://github.com/smartcat-labs/cassandra-migration-tool-java] 
+[smartcat labs cassandra migration tool](https://github.com/smartcat-labs/cassandra-migration-tool-java) 
 
 ### Requirements
 
