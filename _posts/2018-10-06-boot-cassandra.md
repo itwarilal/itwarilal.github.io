@@ -85,6 +85,8 @@ support when it comes to Cassandra. You can add in-memory Cassandra support by u
 As spring does generally, it provides different ways to modify Cassandra auto-configuration so that we can modify 
 auto configured components.   
 
+I have used Java 8, Spring-Boot 2.0.1 for snippets but this also works for Spring-Boot 1.x services.
+
 #### In-Memory Cassandra Support
 
 To start, you can add cassandra-unit to add embedded cassandra server to your project. 
