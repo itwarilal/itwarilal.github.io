@@ -8,65 +8,62 @@ categories: [java, spring-boot]
 
 Typically if you are developing backend web application or REST APIs there may be need for data storage. There are 
 numerous options on database choice ranging from typical RDBMS systems to NoSQL databases. As you develop and iterate on
-your application you would have changes to database. Generally, speaking you would want to have automated way to 
-migrate these database changes across your environments. This is achieved using database schema migration solutions. 
-For RDBMS [Flyway](https://flywaydb.org), [Liquibase](http://www.liquibase.org) and 
-[MyBatis](http://www.mybatis.org/migrations/) are proven solutions. In this article we are going to focus on how to 
-manage schema migration for Cassandra.
+your application there might be changes to database schema and you would want to migrate these database changes 
+across your environments in automated way. Database schema migration solutions do provide such support, for RDBMS 
+[Flyway](https://flywaydb.org), [Liquibase](http://www.liquibase.org) and [MyBatis](http://www.mybatis.org/migrations/) 
+are proven solutions. In this article we are going to focus on how to manage schema migration for Cassandra.
 
 ## Why to use Schema Migration?
 
 Idea behind Schema Migration is that you are can automatically apply schema changes across all your environments in 
-consistent fashion. That way you don't have to manually keep track of schema changes and you can also rebuild your 
-environment easily.    
-
+consistent fashion. Such solution rules out any inadvertent human error with applying manual changes and it also makes 
+rebuilding any environment breeze.    
 
 ## How does Schema Migration work?
 
 Schema migration can be done either as a standalone solution which resides outside of application or service. You can
 execute those migration before your related application changes are deployed. Alternative approach is to embedded 
 schema migration into your application and it gets executed as part of application startup. There are several pros and 
-cons around both approaches but I personally pefer the later as it fits better for CI/CD model.
+cons around both approaches but I personally prefer the later as it fits better with CI/CD model.
 
-Schema migration frameworks generally work by creating tracking table which keeps tab on what schema migration script 
-has been applied on that particular environment. All the schema migration scripts are given unique version number or ID
-and that is used as primary identifier to keep track of the progress of migration. Additionally, in some frameworks 
-a locking table is used to make sure multiple instances of application does not execute same migration. Since RDBMS 
-systems are strongly consistent it guarantees that other application instances see the status of migration and schema
-changes.  
+Schema migration frameworks generally work by creating tracking table which keeps tab on which schema migration script 
+has been applied on that particular environment. All the schema migration scripts are given unique version number 
+or primary identifier to keep track of the progress of migration. Additionally, in some frameworks a locking table is 
+used to make sure multiple instances of application does not execute same migration. Since RDBMS systems are strongly 
+consistent it guarantees that other application instances see the status of migration and schema changes.  
 
 ## Challenges with Schema Migration on Cassandra
 
-Inherently Cassandra doesn't support strong consistency but uses eventual consistency model. Migration frameworks rely
+Inherently Cassandra does not support strong consistency but uses eventual consistency model. Migration frameworks rely
 on JDBC drivers and transaction support to guarantee schema migration consistency. This makes it very challenging for 
-the typical schema migration frameworks to work with Cassandra. There have been attempts to write JDBC wrappers around
-Cassandra driver but they haven't been very successful. 
+the typical schema migration frameworks to work with Cassandra. There have been several attempts to write JDBC wrappers 
+around Cassandra driver but they haven't been very successful. 
 
 ## Spring Boot and Cassandra Support
 
 spring-boot makes is very easy to integrate Cassandra support into your applications. If you have used spring-data 
-module for RDBMS support, then replacing to use Cassandra support will be breeze. spring-data provides easy to use
-Repository pattern which can be used across for both RDBMS and Cassandra support with very minimal changes. 
-spring-data-cassandra module provides great flexibility in its approach with 3 different ways to interact with 
-Cassandra - repository pattern for domain based interaction, CassandraTemplate for better control over queries using 
-domain objects and CqlTemplate for low level cql interactions.
+module for RDBMS support, then replacing it to use Cassandra support will be breeze. spring-data provides easy to use
+Repository pattern which can be easily changed to work with RDMBS or Cassandra very easily. spring-data-cassandra module
+provides great flexibility in its approach with 3 different ways to interact with Cassandra - repository pattern for 
+domain based interaction, CassandraTemplate for better control over queries using domain objects and CqlTemplate for 
+low level cql like interactions.
 
 As it is very common with spring modules, spring-data-cassandra is developed with lot of extensibility and great 
 thoughts around development lifecycle. Unfortunately, spring-data-cassandra provides very rudimentary support for
 Cassandra Schema migration.
 
-spring-data-cassandra provides support to specify keyspace creation and other data migration scripts but there is no 
-easy way to keep track of those migration as provided by typical RDBMS based schema migration scripts. Spring can also 
+spring-data-cassandra provides support to specify keyspace creation and other data migration scripts. Spring can also 
 introspect domain objects or entity classes and create Cassandra table specifications for those.
 
-Generally, like greater control over generated schema so I prefer explicitly creating data migration scripts for schema 
-changes and not using entity based auto-generation of scripts. This approach makes it easy to adhere to any conventions 
-you might have around database objects. spring-data-cassandra also provides script based approach but it is not 
-extensive and lacks versioning, metadata information and tracking change application.
+Generally, speaking I like greater control over generated schema hence I prefer explicitly creating data migration 
+scripts for schema changes instead of using entity based auto-generation of scripts. This approach makes it easy to 
+enforce any conventions you might have around database changes. spring-data-cassandra also provides script based 
+approach but lacks versioning, metadata information and tracking as you would expect from schema migration solutions.
 
-There are couple of good frameworks now that make it easy to support schema migration for Cassandra and provide very
-similar behavior/functionality as their RDBMS counterpart. We are going to go into more detail into one of such solution
-that I have been using for sometime and has been working really great for us.
+There are couple of good frameworks that make it easy to support schema migration for Cassandra and provide very similar
+behavior/functionality as their RDBMS counterpart. We are going to go into more detail into one of such solution
+that I have been using for sometime - 
+(smartcat labs cassandra migration tool)[https://github.com/smartcat-labs/cassandra-migration-tool-java] 
 
 ### Requirements
 
@@ -157,6 +154,8 @@ keySpace is created you also need to make sure that embedded cassandra server is
 specifying that as part of *@PostConstruct* on the configuration itself. This helps with local development setup. 
 
 I am sure there are different ways to achieve similar configuration but this was one that worked out for me.
+
+#### Integrate Smartcat Lab's Migration Manager
 
 Next I wanted to add data migration support which works similar way across both local and deployed environment and it 
 works in same way without any special handling between embedded cassandra vs deployed cassandra.
@@ -264,10 +263,10 @@ public class MigrationManager {
 
 ``` 
 
-One problem that I ran into with this setup was that order of how various cassandra configuration classes are created 
-would result in startup failure. After investigation I found that sometimes migration scripts will get executed before
-cassandra session got created. I tried using *@DependsOn* to force creation of session before script execution but I did
-not find good solution.
+One problem that I ran into with this setup was that order of creation of various cassandra configuration classes is 
+non-deterministic and it would result in startup failure. After investigation I found that sometimes migration scripts 
+will get executed before cassandra session got created. I tried using *@DependsOn* to force creation of session before 
+script execution but I did not find good solution.
 
 After digging through some of the Cassandra related auto-configuration I found this gem - 
 *AbstractDependsOnBeanFactoryPostProcessor*. So I added below configuration and that worked out perfectly.
@@ -286,10 +285,11 @@ public class MigrationConfig {
         }
     }
 }
-```  
-This configuration basically says that *CqlTemplate* and *CassandraCqlTemplateFactoryBean* should be created before
-*migrationManager* bean defined above is created. Which turn results in Cassandra Session bean getting created as it is
-needed to initialize CqlTemplate.
+```
+  
+This configuration basically says that instances *CqlTemplate* and *CassandraCqlTemplateFactoryBean* should be created 
+before *migrationManager* is created. Which in turn results in Cassandra Session bean getting created as it is needed 
+to initialize CqlTemplate.
 
 With little bit of configuration above it makes it easy to setup database migration for cassandra which works in
 consistent way across all your environments. Although, it is small and easy setup, I wished spring had provided such 
