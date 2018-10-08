@@ -6,4 +6,4 @@ permalink: /about/
 
 About me....
 
-email: slad[at]gmail.com
+email: itwarilal[at]gmail.com
