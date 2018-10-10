@@ -4,7 +4,7 @@ author: itwarilal
 github: https://github.com/itwarilal
 about: Seasoned java and spring developer.
 disqus_shortname: randommusings
-google_analytics: UA-XXXXXXXX-Y
+google_analytics: UA-127249848-1
 avatar_url: /static/img/avatar.jpg
 
 enableTags: true
@@ -21,14 +21,14 @@ social:
     - icon: fa-twitter
       link: "#"
     - icon: fa-linkedin
-      link: "https://www.linkedin.com/in/sachinlad"
+      link: "https://www.linkedin.com/in/"
     - icon: fa-stack-exchange
       link: "#"
     - icon: fa-github
-      link: "https://github.com/sachinlad"
+      link: "https://github.com/itwarilal"
 
 share:
-  twitter_username: sachin.lad
+  twitter_username:
   fb_appid: 
 
 urls:
